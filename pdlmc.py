@@ -50,15 +50,18 @@ def pdlmc_run_chain_torch(
             langevin_step_torch, grad_u=grad_u_lang, proj=proj, step_size=step_size_x
         )
 
+        xs = []
         for j in range(lmc_steps + burnin):
-            init_state = x
-            x = step(init_state)
+            x = step(x)
+            xs.append(x)
 
-        qlmbda = vmap(g)(x).mean(axis=0)
-        qnu = h(x)
+        afterburnin = torch.stack(xs[burnin:])
+        last_iterate = afterburnin[-1]
+        qlmbda = vmap(g)(afterburnin).mean(axis=0)
+        qnu = h(afterburnin)
 
         new_state = (
-            x,
+            last_iterate,
             F.relu(lmbda + step_size_lmbda * qlmbda),
             nu + step_size_nu * qnu,
         )
