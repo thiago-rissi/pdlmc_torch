@@ -14,23 +14,24 @@ CWD = os.path.dirname(__file__)
 sys.path.append(os.path.join(CWD, ".."))
 from pdlmc import pdlmc_run_chain_torch as pdlmc_run_chain
 
-seed = 42
-torch.manual_seed(seed)
-torch.cuda.manual_seed(seed)
-np.random.seed(seed)
-torch.backends.cudnn.deterministic = True
-torch.backends.cudnn.benchmark = False
+# seed = 42
+# torch.manual_seed(seed)
+# torch.cuda.manual_seed(seed)
+# np.random.seed(seed)
+# torch.backends.cudnn.deterministic = True
+# torch.backends.cudnn.benchmark = False
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cpu")
 
-ITERATIONS = int(2.5e6)
+ITERATIONS = int(5e5)
 
 
 # Constraints
 def f(x):
     x = x.to(device)
-    target = 2 * torch.ones_like(x)
-    return torch.inner(x - target, x - target) / 0.5
+    center = 2 * torch.ones_like(x)
+    return torch.inner(x - center, x - center) / 0.5
 
 
 def g(x):
@@ -39,17 +40,22 @@ def g(x):
     return F.relu(norm_sq - 1.0) - 0.001
 
 
+def ellipsoid_constraint(x):
+    A_inv = torch.tensor([[4.0, 0.0], [0.0, 0.25]], device=x.device)
+    quad_form = torch.sum(x @ A_inv * x, dim=-1)
+    return F.relu(quad_form - 1.0) - 0.001
+
+
 # PD-LMC
 start = time.process_time()
 x, lmbda, nu = pdlmc_run_chain(
-    device=device,
     f=f,
-    g=g,
+    g=ellipsoid_constraint,
     h=lambda _: 0,
     iterations=ITERATIONS,
     lmc_steps=1,
     burnin=0,
-    step_size_x=1e-3,
+    step_size_x=1.1e-3,
     step_size_lmbda=2e-1,
     step_size_nu=0,
     initial_x=torch.zeros(2, device=device),

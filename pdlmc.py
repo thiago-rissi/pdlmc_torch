@@ -1,11 +1,8 @@
-from collections import namedtuple
 from typing import Any, Callable, Tuple
 import numpy as np
 import torch
 from torch.func import grad, vmap
 from functools import partial
-from torch.nn import ReLU
-from torch.utils._pytree import tree_flatten, tree_unflatten, tree_map
 import torch.nn.functional as F
 from tqdm import tqdm
 
@@ -15,7 +12,6 @@ ProjectionFn = Callable[[torch.Tensor | Any], Any]
 
 
 def pdlmc_run_chain_torch(
-    device: torch.device,
     f: PotentialFn,
     g: ConstraintFn,
     h: ConstraintFn,
@@ -84,7 +80,7 @@ def pdlmc_run_chain_torch(
     return x, lmbd, nu
 
 
-def langevin_step_torch(state: torch.Tensor, grad_u, proj, step_size) -> Tuple:
+def langevin_step_torch(state: torch.Tensor, grad_u, proj, step_size) -> torch.Tensor:
     x = state
 
     normals = torch.randn_like(x, device=x.device)
