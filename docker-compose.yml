@@ -1,0 +1,12 @@
+services:
+  pdlmc:
+    build: ./
+    tty: true
+    container_name: pdlmc
+    image: pdlmc:latest
+    volumes:
+      - .:/usr/src/code
+      - /usr/src/code/.venv
+    working_dir: /usr/src/code/
+    ipc: host
+    
