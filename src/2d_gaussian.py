@@ -10,7 +10,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-CWD = os.path.dirname(__file__)
+CWD = pathlib.Path(os.path.dirname(__file__)).parent
 sys.path.append(os.path.join(CWD, ".."))
 from pdlmc import PDLMCSolver
 
