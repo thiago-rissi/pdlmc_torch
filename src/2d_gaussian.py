@@ -38,7 +38,7 @@ def g(x: torch.Tensor):
 
 @torch.compile
 def ellipsoid_constraint(x: torch.Tensor):
-    """Constraint function for an ellipsoid defined by the inverse covariance matrix."""
+    """Constraint function for an ellipsoid."""
     A_inv = torch.tensor([[4.0, 0.0], [0.0, 0.25]], device=x.device)
     quad_form = torch.sum(x @ A_inv * x, dim=-1)
     return F.relu(quad_form - 1.0) - 0.001
